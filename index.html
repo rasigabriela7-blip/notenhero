@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notenhero – Schweizer Notenrechner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="config-warning" class="overlay hidden">
+    <div class="overlay-card">
+      <h2>Firebase konfigurieren</h2>
+      <p>Trage deine Firebase Web-Konfiguration in <code>firebase-config.js</code> ein, damit Login &amp; Datenspeicherung funktionieren.</p>
+      <p>Pfad: <code>./firebase-config.js</code></p>
+      <button id="dismiss-config" class="btn ghost">Später</button>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-dot"></div>
+        <div>
+          <div class="title">Notenhero</div>
+          <small class="subtitle">Schweizer Noten · Stand 30.01.2026</small>
+        </div>
+      </div>
+      <div class="user-box" id="user-box">
+        <span id="user-name" class="user-name">Gast</span>
+        <button id="logout-btn" class="btn ghost small" aria-label="Abmelden">Logout</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="card auth" id="auth-card">
+        <div class="card-header">
+          <h2>Account</h2>
+          <p class="muted">Anmeldung via Google oder E-Mail/Passwort.</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-tab="login">Login</button>
+          <button class="tab" data-tab="register">Registrieren</button>
+          <button class="tab" data-tab="reset">Passwort-Reset</button>
+        </div>
+
+        <div class="tab-content" data-pane="login">
+          <form id="login-form" class="stack">
+            <label>
+              <span>E-Mail</span>
+              <input type="email" name="email" required autocomplete="username">
+            </label>
+            <label>
+              <span>Passwort</span>
+              <input type="password" name="password" required autocomplete="current-password">
+            </label>
+            <button type="submit" class="btn primary">Einloggen</button>
+          </form>
+          <button id="google-login" class="btn ghost full">Mit Google anmelden</button>
+        </div>
+
+        <div class="tab-content hidden" data-pane="register">
+          <form id="register-form" class="stack">
+            <label>
+              <span>Name</span>
+              <input type="text" name="displayName" required>
+            </label>
+            <label>
+              <span>E-Mail</span>
+              <input type="email" name="email" required autocomplete="username">
+            </label>
+            <label>
+              <span>Passwort</span>
+              <input type="password" name="password" required autocomplete="new-password" minlength="6">
+            </label>
+            <button type="submit" class="btn primary">Account erstellen</button>
+          </form>
+          <p class="muted small">Nach Registrierung wird eine E-Mail-Verifikation verschickt.</p>
+        </div>
+
+        <div class="tab-content hidden" data-pane="reset">
+          <form id="reset-form" class="stack">
+            <label>
+              <span>E-Mail</span>
+              <input type="email" name="email" required>
+            </label>
+            <button type="submit" class="btn primary">Reset-Link senden</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="card" id="dashboard" aria-live="polite">
+        <div class="card-header">
+          <div>
+            <h2>Semester</h2>
+            <p class="muted">Verwalte Semester &amp; aktive Auswahl.</p>
+          </div>
+          <form id="semester-form" class="row">
+            <input type="text" name="name" placeholder="Semestername" required>
+            <input type="color" name="color" value="#38c8a0" aria-label="Farbe wählen">
+            <button class="btn primary" type="submit">Neu</button>
+          </form>
+        </div>
+        <div id="semester-list" class="list empty">
+          <p class="muted">Noch keine Semester.</p>
+        </div>
+      </section>
+
+      <section class="card" id="subjects-card">
+        <div class="card-header">
+          <div>
+            <h2>Fächer</h2>
+            <p class="muted" id="active-semester-label">Kein aktives Semester gewählt.</p>
+          </div>
+          <form id="subject-form" class="row">
+            <input type="text" name="name" placeholder="Fachname" required>
+            <label class="checkbox">
+              <input type="checkbox" name="important">
+              <span>Wichtig</span>
+            </label>
+            <button class="btn primary" type="submit">Hinzufügen</button>
+          </form>
+        </div>
+        <div id="subject-list" class="list empty">
+          <p class="muted">Wähle ein Semester, um Fächer zu sehen.</p>
+        </div>
+      </section>
+
+      <section class="card grades">
+        <div class="card-header">
+          <h2>Berechnungen &amp; Übersicht</h2>
+          <p class="muted">Live-Berechnung gemäss Schweizer System.</p>
+        </div>
+
+        <div class="grid cols-2 gap">
+          <div class="panel">
+            <h3>Noten-Hero</h3>
+            <form id="hero-form" class="stack">
+              <label>
+                <span>Erreichte Punkte</span>
+                <input type="number" min="0" step="0.01" name="points" required>
+              </label>
+              <label>
+                <span>Maximale Punkte</span>
+                <input type="number" min="0.01" step="0.01" name="maxPoints" required>
+              </label>
+              <output id="hero-output" class="grade">–</output>
+            </form>
+          </div>
+
+          <div class="panel summary">
+            <h3>Aktueller Schnitt</h3>
+            <div class="summary-row">
+              <span>Semester Ø (alle Fächer)</span>
+              <strong id="avg-all">–</strong>
+            </div>
+            <div class="summary-row">
+              <span>Wichtige Fächer Ø</span>
+              <strong id="avg-important">–</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div><span class="pill green"></span> Wichtig</div>
+          <div><span class="pill blue"></span> Standard</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
